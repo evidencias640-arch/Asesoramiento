@@ -1,1375 +1,1496 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Asesorías - Ing. Joel Pineda</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-color: #1e40af;
-            --secondary-color: #3b82f6;
-            --accent-color: #60a5fa;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --dark-color: #1e293b;
-            --light-color: #f8fafc;
-            --text-color: #334155;
-            --border-color: #e2e8f0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 2rem;
-            animation: fadeInDown 0.8s ease;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
-
-        .calculator-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .card-header h2 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-header p {
-            opacity: 0.9;
-        }
-
-        .card-body {
-            padding: 2rem;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            padding: 0 1rem;
-        }
-
-        .step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-        }
-
-        .step::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            right: -50%;
-            height: 2px;
-            background: var(--border-color);
-            z-index: 0;
-        }
-
-        .step:last-child::before {
-            display: none;
-        }
-
-        .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--border-color);
-            color: var(--text-color);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-
-        .step.active .step-number {
-            background: var(--primary-color);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .step.completed .step-number {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .step-label {
-            font-size: 0.85rem;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-
-        .form-section {
-            display: none;
-            animation: slideIn 0.5s ease;
-        }
-
-        .form-section.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--dark-color);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .form-group label i {
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.9rem;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .option-card {
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .option-card:hover {
-            border-color: var(--secondary-color);
-            background: rgba(59, 130, 246, 0.05);
-            transform: translateY(-2px);
-        }
-
-        .option-card.selected {
-            border-color: var(--primary-color);
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-        }
-
-        .option-card i {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .option-card h4 {
-            color: var(--dark-color);
-            margin-bottom: 0.3rem;
-        }
-
-        .option-card p {
-            font-size: 0.85rem;
-            color: var(--text-color);
-        }
-
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .radio-option:hover {
-            border-color: var(--secondary-color);
-            background: rgba(59, 130, 246, 0.05);
-        }
-
-        .radio-option input[type="radio"] {
-            margin-right: 1rem;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .radio-option.selected {
-            border-color: var(--primary-color);
-            background: rgba(30, 64, 175, 0.05);
-        }
-
-        .info-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 4px solid var(--primary-color);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-box i {
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 1rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .summary-section {
-            background: var(--light-color);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .summary-item:last-child {
-            border-bottom: none;
-        }
-
-        .summary-label {
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .summary-value {
-            color: var(--dark-color);
-            font-weight: 500;
-        }
-
-        .total-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-
-        .total-label {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-        }
-
-        .total-amount {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .total-note {
-            font-size: 0.9rem;
-            opacity: 0.85;
-        }
-
-        .price-breakdown {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--dark-color);
-        }
-
-        .price-breakdown h4 {
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-
-        .breakdown-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .breakdown-item:last-child {
-            border-bottom: none;
-            font-weight: bold;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            padding-top: 1rem;
-            margin-top: 0.5rem;
-            border-top: 2px solid var(--primary-color);
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            .card-body {
-                padding: 1.5rem;
-            }
-
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .step-label {
-                font-size: 0.7rem;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .total-amount {
-                font-size: 2rem;
-            }
-        }
-
-        .help-text {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 0.3rem;
-        }
-
-        .required {
-            color: #ef4444;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Asesorías - Ing. Joel Pineda</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1e40af;
+      --secondary-color: #3b82f6;
+      --accent-color: #60a5fa;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --dark-color: #1e293b;
+      --light-color: #f8fafc;
+      --text-color: #334155;
+      --border-color: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 2rem;
+      animation: fadeInDown 0.8s ease;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .calculator-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .card-header h2 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-header p {
+      opacity: 0.9;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding: 0 1rem;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      right: -50%;
+      height: 2px;
+      background: var(--border-color);
+      z-index: 0;
+    }
+
+    .step:last-child::before {
+      display: none;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border-color);
+      color: var(--text-color);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+    }
+
+    .step.active .step-number {
+      background: var(--primary-color);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .step.completed .step-number {
+      background: var(--success-color);
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .form-section {
+      display: none;
+      animation: slideIn 0.5s ease;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--dark-color);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .form-group label i {
+      color: var(--primary-color);
+      margin-right: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.9rem;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .option-card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .option-card:hover {
+      border-color: var(--secondary-color);
+      background: rgba(59, 130, 246, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected {
+      border-color: var(--primary-color);
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    }
+
+    .option-card i {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .option-card h4 {
+      color: var(--dark-color);
+      margin-bottom: 0.3rem;
+    }
+
+    .option-card p {
+      font-size: 0.85rem;
+      color: var(--text-color);
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .radio-option:hover {
+      border-color: var(--secondary-color);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .radio-option input[type="radio"] {
+      margin-right: 1rem;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .radio-option.selected {
+      border-color: var(--primary-color);
+      background: rgba(30, 64, 175, 0.05);
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-left: 4px solid var(--primary-color);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box i {
+      color: var(--primary-color);
+      margin-right: 0.5rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .summary-section {
+      background: var(--light-color);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .summary-value {
+      color: var(--dark-color);
+      font-weight: 500;
+    }
+
+    .total-section {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 15px;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .total-label {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.9;
+    }
+
+    .total-amount {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .total-note {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    .price-breakdown {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+      color: var(--dark-color);
+    }
+
+    .price-breakdown h4 {
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .breakdown-item:last-child {
+      border-bottom: none;
+      font-weight: bold;
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      padding-top: 1rem;
+      margin-top: 0.5rem;
+      border-top: 2px solid var(--primary-color);
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .step-label {
+        font-size: 0.7rem;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .total-amount {
+        font-size: 2rem;
+      }
+    }
+
+    .help-text {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 0.3rem;
+    }
+
+    .required {
+      color: #ef4444;
+    }
+
+    /* Estilos para el botón flotante de inicio */
+    .floating-home-btn {
+      position: fixed;
+      /* Hace que el botón "flote" */
+      bottom: 25px;
+      /* Separación del borde inferior */
+      right: 25px;
+      /* Separación del borde derecho */
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      /* Lo hace circular */
+      background-color: var(--primary-color);
+      /* Color de fondo (azul oscuro) */
+      color: var(--light-color);
+      /* Color del icono (blanco) */
+      display: flex;
+      /* Para centrar el icono */
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      /* Sombra para destacarlo */
+      z-index: 1000;
+      /* Asegura que esté por encima de todos los elementos */
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      text-decoration: none;
+    }
+
+    .floating-home-btn:hover {
+      background-color: var(--secondary-color);
+      /* Cambio de color al pasar el mouse */
+      transform: scale(1.1);
+      /* Ligero aumento de tamaño */
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-calculator"></i> Calculadora de Asesorías</h1>
-            <p>Ing. Joel Steven Pineda Rincón - Calcula el costo de tu asesoría personalizada</p>
-        </div>
-
-        <div class="calculator-card">
-            <div class="card-header">
-                <h2>Cotización Profesional</h2>
-                <p>Completa los siguientes pasos para obtener tu cotización detallada</p>
-            </div>
-
-            <div class="card-body">
-                <!-- Step Indicator -->
-                <div class="step-indicator">
-                    <div class="step active" data-step="1">
-                        <div class="step-number">1</div>
-                        <div class="step-label">Servicio</div>
-                    </div>
-                    <div class="step" data-step="2">
-                        <div class="step-number">2</div>
-                        <div class="step-label">Modalidad</div>
-                    </div>
-                    <div class="step" data-step="3">
-                        <div class="step-number">3</div>
-                        <div class="step-label">Detalles</div>
-                    </div>
-                    <div class="step" data-step="4">
-                        <div class="step-number">4</div>
-                        <div class="step-label">Cotización</div>
-                    </div>
-                </div>
-
-                <form id="calculatorForm">
-                    <!-- PASO 1: Tipo de Servicio -->
-                    <div class="form-section active" id="step1">
-                        <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
-                            <i class="fas fa-list-check"></i> Paso 1: Selecciona el Servicio
-                        </h3>
-                        <div class="info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Selecciona el área en la que necesitas asesoría.</strong> Cada servicio tiene tarifas específicas según la complejidad.
-                        </div>
-                        <div class="options-grid">
-                            <div class="option-card" data-service="matematicas" data-rate="25000">
-                                <i class="fas fa-calculator"></i>
-                                <h4>Matemáticas</h4>
-                                <p>Desde $25,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="fisica" data-rate="28000">
-                                <i class="fas fa-atom"></i>
-                                <h4>Física</h4>
-                                <p>Desde $28,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="lectura" data-rate="22000">
-                                <i class="fas fa-book-open"></i>
-                                <h4>Lectura Crítica</h4>
-                                <p>Desde $22,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="programacion" data-rate="35000">
-                                <i class="fas fa-code"></i>
-                                <h4>Programación</h4>
-                                <p>Desde $35,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="ofimatica" data-rate="30000">
-                                <i class="fas fa-file-excel"></i>
-                                <h4>Ofimática</h4>
-                                <p>Desde $30,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="redes" data-rate="40000">
-                                <i class="fas fa-network-wired"></i>
-                                <h4>Redes</h4>
-                                <p>Desde $40,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="seguridad" data-rate="45000">
-                                <i class="fas fa-shield-alt"></i>
-                                <h4>Seguridad</h4>
-                                <p>Desde $45,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="nube" data-rate="42000">
-                                <i class="fas fa-cloud"></i>
-                                <h4>Admin. Nube</h4>
-                                <p>Desde $42,000/hora</p>
-                            </div>
-                            <div class="option-card" data-service="gerencia" data-rate="38000">
-                                <i class="fas fa-chart-line"></i>
-                                <h4>Gerencia Estratégica</h4>
-                                <p>Desde $38,000/hora</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PASO 2: Modalidad -->
-                    <div class="form-section" id="step2">
-                        <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
-                            <i class="fas fa-graduation-cap"></i> Paso 2: Modalidad de Trabajo
-                        </h3>
-                        <div class="info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Elige cómo deseas recibir la asesoría.</strong> Cada modalidad tiene características diferentes.
-                        </div>
-                        <div class="radio-group">
-                            <label class="radio-option">
-                                <input type="radio" name="modalidad" value="sesion" data-multiplier="1">
-                                <div>
-                                    <h4><i class="fas fa-clock"></i> Sesión por Hora</h4>
-                                    <p class="help-text">Clases personalizadas en línea con duración flexible. Tarifa base por hora.</p>
-                                </div>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="modalidad" value="paquete" data-multiplier="0.85">
-                                <div>
-                                    <h4><i class="fas fa-box"></i> Paquete de Horas</h4>
-                                    <p class="help-text">Compra múltiples horas con descuento. <strong>15% de descuento</strong> (mínimo 5 horas).</p>
-                                </div>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="modalidad" value="trabajo" data-multiplier="1.5">
-                                <div>
-                                    <h4><i class="fas fa-file-alt"></i> Desarrollo de Trabajo</h4>
-                                    <p class="help-text">Realización de proyectos, tareas o trabajos específicos. Se cotiza según complejidad.</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- PASO 3: Detalles Específicos -->
-                    <div class="form-section" id="step3">
-                        <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
-                            <i class="fas fa-clipboard-list"></i> Paso 3: Detalles de tu Asesoría
-                        </h3>
-
-                        <!-- Para Sesión por Hora -->
-                        <div id="detalles-sesion" style="display: none;">
-                            <div class="form-group">
-                                <label><i class="fas fa-clock"></i> Cantidad de Horas <span class="required">*</span></label>
-                                <input type="number" id="horas" min="1" max="50" value="1" step="0.5">
-                                <p class="help-text">¿Cuántas horas de asesoría necesitas? (Mínimo 1 hora)</p>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-layer-group"></i> Nivel de Complejidad <span class="required">*</span></label>
-                                <select id="complejidad-sesion">
-                                    <option value="basico" data-factor="1.20">Básico - Conceptos fundamentales (+20%)</option>
-                                    <option value="intermedio" data-factor="1.35">Intermedio - Temas específicos (+35%)</option>
-                                    <option value="avanzado" data-factor="1.50">Avanzado - Temas complejos o especializados (+50%)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-users"></i> Tipo de Sesión</label>
-                                <select id="tipo-sesion">
-                                    <option value="individual" data-factor="1">Individual (1 persona)</option>
-                                    <option value="grupal-2-3" data-factor="1.3">Grupal 2-3 personas</option>
-                                    <option value="grupal-4-5" data-factor="1.5">Grupal 4-5 personas</option>
-                                    <option value="grupal-6plus" data-factor="1.8">Grupal 6+ personas</option>
-                                </select>
-                                <p class="help-text">Las sesiones grupales tienen un costo adicional</p>
-                            </div>
-                        </div>
-
-                        <!-- Para Paquete de Horas -->
-                        <div id="detalles-paquete" style="display: none;">
-                            <div class="form-group">
-                                <label><i class="fas fa-box"></i> Cantidad de Horas del Paquete <span class="required">*</span></label>
-                                <select id="paquete-horas">
-                                    <option value="5">5 horas - 15% descuento</option>
-                                    <option value="10">10 horas - 15% descuento</option>
-                                    <option value="15">15 horas - 15% descuento</option>
-                                    <option value="20">20 horas - 15% descuento</option>
-                                    <option value="30">30 horas - 15% descuento</option>
-                                </select>
-                                <p class="help-text">Todos los paquetes incluyen 15% de descuento</p>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-layer-group"></i> Nivel de Complejidad <span class="required">*</span></label>
-                                <select id="complejidad-paquete">
-                                    <option value="basico" data-factor="1.20">Básico (+20%)</option>
-                                    <option value="intermedio" data-factor="1.35">Intermedio (+35%)</option>
-                                    <option value="avanzado" data-factor="1.50">Avanzado (+50%)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Para Desarrollo de Trabajo -->
-                        <div id="detalles-trabajo" style="display: none;">
-                            <div class="form-group">
-                                <label><i class="fas fa-tasks"></i> Tipo de Trabajo <span class="required">*</span></label>
-                                <select id="tipo-trabajo">
-                                    <option value="tarea" data-factor="1">Tarea o ejercicios (1-3 horas estimadas)</option>
-                                    <option value="taller" data-factor="1.3">Taller o Quiz (2-4 horas estimadas)</option>
-                                    <option value="proyecto-pequeno" data-factor="1.8">Proyecto pequeño (5-10 horas)</option>
-                                    <option value="proyecto-mediano" data-factor="2.5">Proyecto mediano (10-20 horas)</option>
-                                    <option value="proyecto-grande" data-factor="3.5">Proyecto grande (20+ horas)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-layer-group"></i> Complejidad del Trabajo <span class="required">*</span></label>
-                                <select id="complejidad-trabajo">
-                                    <option value="basico" data-factor="1.15">Básico - Conocimientos fundamentales (+15%)</option>
-                                    <option value="intermedio" data-factor="1.35">Intermedio - Requiere análisis (+35%)</option>
-                                    <option value="avanzado" data-factor="1.55">Avanzado - Requiere investigación (+55%)</option>
-                                    <option value="experto" data-factor="1.75">Experto - Alta complejidad técnica (+75%)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-calendar-alt"></i> Urgencia de Entrega <span class="required">*</span></label>
-                                <select id="urgencia">
-                                    <option value="normal" data-factor="1">Normal (7+ días) - Sin recargo</option>
-                                    <option value="media" data-factor="1.15">Media urgencia (4-6 días) - +15%</option>
-                                    <option value="alta" data-factor="1.30">Alta urgencia (2-3 días) - +30%</option>
-                                    <option value="urgente" data-factor="1.50">Urgente (24-48 horas) - +50%</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-file-alt"></i> Extensión del Trabajo</label>
-                                <select id="extension">
-                                    <option value="corto" data-factor="1">Corto (1-5 páginas / ejercicios básicos)</option>
-                                    <option value="medio" data-factor="1.15">Medio (5-15 páginas / proyecto estándar)</option>
-                                    <option value="largo" data-factor="1.30">Largo (15-30 páginas / proyecto complejo)</option>
-                                    <option value="muy-largo" data-factor="1.50">Muy largo (30+ páginas / sistema completo)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-comment-alt"></i> Descripción del Trabajo <span class="required">*</span></label>
-                                <textarea id="descripcion-trabajo" placeholder="Describe brevemente qué necesitas: tema, requisitos específicos, entregables esperados, etc."></textarea>
-                                <p class="help-text">Esta información ayuda a generar una cotización más precisa</p>
-                            </div>
-                        </div>
-
-                        <!-- Información de Contacto -->
-                        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
-                            <h4 style="margin-bottom: 1rem; color: var(--dark-color);">
-                                <i class="fas fa-user"></i> Información de Contacto
-                            </h4>
-                            <div class="form-group">
-                                <label><i class="fas fa-user"></i> Nombre Completo <span class="required">*</span></label>
-                                <input type="text" id="nombre" required>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span></label>
-                                <input type="email" id="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label><i class="fas fa-phone"></i> Teléfono / WhatsApp <span class="required">*</span></label>
-                                <input type="tel" id="telefono" required>
-                            </div>
-                            
-                            <!-- Ubicación -->
-                            <div style="margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid var(--warning-color);">
-                                <h4 style="color: var(--dark-color); margin-bottom: 1rem;">
-                                    <i class="fas fa-map-marker-alt"></i> Ubicación para Asesoría Presencial
-                                </h4>
-                                <p style="color: var(--text-color); margin-bottom: 1rem; font-size: 0.95rem;">
-                                    ¿Te encuentras en alguna de estas zonas fuera de Cúcuta?
-                                </p>
-                                <div class="radio-group" style="gap: 0.75rem;">
-                                    <label class="radio-option" style="padding: 0.75rem;">
-                                        <input type="radio" name="ubicacion" value="no" checked>
-                                        <div>
-                                            <h4 style="margin: 0; font-size: 1rem;"><i class="fas fa-city"></i> Cúcuta Centro</h4>
-                                            <p class="help-text" style="margin: 0;">Sin recargo por ubicación</p>
-                                        </div>
-                                    </label>
-                                    <label class="radio-option" style="padding: 0.75rem;">
-                                        <input type="radio" name="ubicacion" value="si">
-                                        <div>
-                                            <h4 style="margin: 0; font-size: 1rem;"><i class="fas fa-map-marked-alt"></i> Zona Metropolitana</h4>
-                                            <p class="help-text" style="margin: 0; color: var(--warning-color); font-weight: 600;">Los Patios, Villa del Rosario o Anillo Vial Occidental (+$8,000)</p>
-                                        </div>
-                                    </label>
-                                </div>
-                                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
-                                    <i class="fas fa-info-circle"></i> Este recargo solo aplica para sesiones presenciales. Las asesorías en línea no tienen costo adicional.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PASO 4: Resumen y Cotización -->
-                    <div class="form-section" id="step4">
-                        <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
-                            <i class="fas fa-receipt"></i> Paso 4: Tu Cotización Personalizada
-                        </h3>
-
-                        <div class="summary-section">
-                            <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
-                                <i class="fas fa-clipboard-check"></i> Resumen de Asesoría
-                            </h4>
-                            <div class="summary-item">
-                                <span class="summary-label">Servicio:</span>
-                                <span class="summary-value" id="resumen-servicio">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">Modalidad:</span>
-                                <span class="summary-value" id="resumen-modalidad">-</span>
-                            </div>
-                            <div class="summary-item" id="resumen-cantidad-container">
-                                <span class="summary-label" id="resumen-cantidad-label">Cantidad:</span>
-                                <span class="summary-value" id="resumen-cantidad">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">Complejidad:</span>
-                                <span class="summary-value" id="resumen-complejidad">-</span>
-                            </div>
-                            <div class="summary-item" id="resumen-detalles-container" style="display: none;">
-                                <span class="summary-label">Detalles adicionales:</span>
-                                <span class="summary-value" id="resumen-detalles">-</span>
-                            </div>
-                        </div>
-
-                        <div class="price-breakdown">
-                            <h4><i class="fas fa-calculator"></i> Desglose de Costos</h4>
-                            <div class="breakdown-item">
-                                <span>Tarifa base:</span>
-                                <span id="breakdown-base">$0</span>
-                            </div>
-                            <div class="breakdown-item" id="breakdown-cantidad-container">
-                                <span id="breakdown-cantidad-label">Cantidad:</span>
-                                <span id="breakdown-cantidad">$0</span>
-                            </div>
-                            <div class="breakdown-item" id="breakdown-complejidad-container">
-                                <span>Ajuste por complejidad:</span>
-                                <span id="breakdown-complejidad">$0</span>
-                            </div>
-                            <div class="breakdown-item" id="breakdown-adicionales-container" style="display: none;">
-                                <span id="breakdown-adicionales-label">Adicionales:</span>
-                                <span id="breakdown-adicionales">$0</span>
-                            </div>
-                            <div class="breakdown-item" id="breakdown-descuento-container" style="display: none;">
-                                <span>Descuento:</span>
-                                <span id="breakdown-descuento" style="color: var(--success-color);">-$0</span>
-                            </div>
-                            <div class="breakdown-item" id="breakdown-ubicacion-container" style="display: none;">
-                                <span>Recargo por ubicación:</span>
-                                <span id="breakdown-ubicacion" style="color: var(--warning-color);">+$8,000</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span>TOTAL:</span>
-                                <span id="breakdown-total">$0 COP</span>
-                            </div>
-                        </div>
-
-                        <div class="total-section">
-                            <div class="total-label">
-                                <i class="fas fa-hand-holding-usd"></i> Inversión Total
-                            </div>
-                            <div class="total-amount" id="precio-final">$0</div>
-                            <div class="total-note">Pesos Colombianos (COP)</div>
-                            <p style="margin-top: 1rem; font-size: 0.95rem;">
-                                <i class="fas fa-info-circle"></i> Esta cotización es válida por 7 días
-                            </p>
-                        </div>
-
-                        <div class="info-box" style="margin-top: 1.5rem;">
-                            <i class="fas fa-check-circle"></i>
-                            <strong>¿Qué incluye tu asesoría?</strong><br>
-                            • Material de apoyo digital<br>
-                            • Seguimiento posterior a la sesión<br>
-                            • Resolución de dudas por WhatsApp<br>
-                            • Certificado de participación (opcional)
-                        </div>
-
-                        <div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-radius: 10px; border-left: 4px solid var(--warning-color);">
-                            <h4 style="color: var(--dark-color); margin-bottom: 0.5rem;">
-                                <i class="fas fa-credit-card"></i> Métodos de Pago
-                            </h4>
-                            <p style="color: var(--text-color); margin: 0;">
-                                • Transferencia bancaria / Nequi / Daviplata<br>
-                                • Se requiere anticipo del 50% para confirmar<br>
-                                • El saldo restante se paga antes de iniciar o al finalizar
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Navigation Buttons -->
-                    <div class="button-group">
-                        <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
-                            <i class="fas fa-arrow-left"></i> Anterior
-                        </button>
-                        <button type="button" class="btn btn-primary" id="nextBtn">
-                            Siguiente <i class="fas fa-arrow-right"></i>
-                        </button>
-                        <button type="button" class="btn btn-primary" id="sendQuoteBtn" style="display: none;">
-                            <i class="fas fa-paper-plane"></i> Enviar Cotización
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 2rem; color: white;">
-            <p style="opacity: 0.9;">
-                <i class="fas fa-shield-alt"></i> Información 100% confidencial y segura<br>
-                <small>Ing. Joel Steven Pineda Rincón © 2025</small>
-            </p>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-calculator"></i> Calculadora de Asesorías</h1>
+      <p>Ing. Joel Steven Pineda Rincón - Calcula el costo de tu asesoría personalizada</p>
     </div>
 
-    <script>
-        // CONFIGURACIÓN DEL BOT DE TELEGRAM
-        const TELEGRAM_BOT_TOKEN = 'AAG42YyO1TFdWNFxRywV2Wp097Zld5s-Oog';
-        const TELEGRAM_CHAT_ID = '7941395763';
+    <div class="calculator-card">
+      <div class="card-header">
+        <h2>Cotización Profesional</h2>
+        <p>Completa los siguientes pasos para obtener tu cotización detallada</p>
+      </div>
 
-        // Variables globales
-        let currentStep = 1;
-        const totalSteps = 4;
-        let calculationData = {
-            servicio: '',
-            servicioNombre: '',
-            tarifaBase: 0,
-            modalidad: '',
-            modalidadMultiplicador: 1,
-            cantidad: 1,
-            complejidad: 1,
-            factoresAdicionales: 1,
-            descuento: 0,
-            ubicacionExtra: 0,
-            detalles: {}
+      <div class="card-body">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-label">Servicio</div>
+          </div>
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-label">Modalidad</div>
+          </div>
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-label">Detalles</div>
+          </div>
+          <div class="step" data-step="4">
+            <div class="step-number">4</div>
+            <div class="step-label">Cotización</div>
+          </div>
+        </div>
+
+        <form id="calculatorForm">
+          <!-- PASO 1: Tipo de Servicio -->
+          <div class="form-section active" id="step1">
+            <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
+              <i class="fas fa-list-check"></i> Paso 1: Selecciona el Servicio
+            </h3>
+            <div class="info-box">
+              <i class="fas fa-info-circle"></i>
+              <strong>Selecciona el área en la que necesitas asesoría.</strong> Cada servicio tiene tarifas específicas
+              según la complejidad.
+            </div>
+            <div class="options-grid">
+              <div class="option-card" data-service="matematicas" data-rate="25000">
+                <i class="fas fa-calculator"></i>
+                <h4>Matemáticas</h4>
+                <p>Desde $25,000/hora</p>
+              </div>
+              <div class="option-card" data-service="fisica" data-rate="28000">
+                <i class="fas fa-atom"></i>
+                <h4>Física</h4>
+                <p>Desde $28,000/hora</p>
+              </div>
+              <div class="option-card" data-service="lectura" data-rate="22000">
+                <i class="fas fa-book-open"></i>
+                <h4>Lectura Crítica</h4>
+                <p>Desde $22,000/hora</p>
+              </div>
+              <div class="option-card" data-service="programacion" data-rate="35000">
+                <i class="fas fa-code"></i>
+                <h4>Programación</h4>
+                <p>Desde $35,000/hora</p>
+              </div>
+              <div class="option-card" data-service="ofimatica" data-rate="30000">
+                <i class="fas fa-file-excel"></i>
+                <h4>Ofimática</h4>
+                <p>Desde $30,000/hora</p>
+              </div>
+              <div class="option-card" data-service="redes" data-rate="40000">
+                <i class="fas fa-network-wired"></i>
+                <h4>Redes</h4>
+                <p>Desde $40,000/hora</p>
+              </div>
+              <div class="option-card" data-service="seguridad" data-rate="45000">
+                <i class="fas fa-shield-alt"></i>
+                <h4>Seguridad</h4>
+                <p>Desde $45,000/hora</p>
+              </div>
+              <div class="option-card" data-service="nube" data-rate="42000">
+                <i class="fas fa-cloud"></i>
+                <h4>Admin. Nube</h4>
+                <p>Desde $42,000/hora</p>
+              </div>
+              <div class="option-card" data-service="gerencia" data-rate="38000">
+                <i class="fas fa-chart-line"></i>
+                <h4>Gerencia Estratégica</h4>
+                <p>Desde $38,000/hora</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 2: Modalidad -->
+          <div class="form-section" id="step2">
+            <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
+              <i class="fas fa-graduation-cap"></i> Paso 2: Modalidad de Trabajo
+            </h3>
+            <div class="info-box">
+              <i class="fas fa-info-circle"></i>
+              <strong>Elige cómo deseas recibir la asesoría.</strong> Cada modalidad tiene características diferentes.
+            </div>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="modalidad" value="sesion" data-multiplier="1">
+                <div>
+                  <h4><i class="fas fa-clock"></i> Sesión por Hora</h4>
+                  <p class="help-text">Clases personalizadas en línea con duración flexible. Tarifa base por hora.</p>
+                </div>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="modalidad" value="paquete" data-multiplier="0.85">
+                <div>
+                  <h4><i class="fas fa-box"></i> Paquete de Horas</h4>
+                  <p class="help-text">Compra múltiples horas con descuento. <strong>15% de descuento</strong> (mínimo 5
+                    horas).</p>
+                </div>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="modalidad" value="trabajo" data-multiplier="1.5">
+                <div>
+                  <h4><i class="fas fa-file-alt"></i> Desarrollo de Trabajo</h4>
+                  <p class="help-text">Realización de proyectos, tareas o trabajos específicos. Se cotiza según
+                    complejidad.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- PASO 3: Detalles Específicos -->
+          <div class="form-section" id="step3">
+            <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
+              <i class="fas fa-clipboard-list"></i> Paso 3: Detalles de tu Asesoría
+            </h3>
+
+            <!-- Para Sesión por Hora -->
+            <div id="detalles-sesion" style="display: none;">
+              <div class="form-group">
+                <label><i class="fas fa-clock"></i> Cantidad de Horas <span class="required">*</span></label>
+                <input type="number" id="horas" min="1" max="50" value="1" step="0.5">
+                <p class="help-text">¿Cuántas horas de asesoría necesitas? (Mínimo 1 hora)</p>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Nivel de Complejidad <span class="required">*</span></label>
+                <select id="complejidad-sesion">
+                  <option value="basico" data-factor="1.20">Básico - Conceptos fundamentales (+20%)</option>
+                  <option value="intermedio" data-factor="1.35">Intermedio - Temas específicos (+35%)</option>
+                  <option value="avanzado" data-factor="1.50">Avanzado - Temas complejos o especializados (+50%)
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-users"></i> Tipo de Sesión</label>
+                <select id="tipo-sesion">
+                  <option value="individual" data-factor="1">Individual (1 persona)</option>
+                  <option value="grupal-2-3" data-factor="1.3">Grupal 2-3 personas</option>
+                  <option value="grupal-4-5" data-factor="1.5">Grupal 4-5 personas</option>
+                  <option value="grupal-6plus" data-factor="1.8">Grupal 6+ personas</option>
+                </select>
+                <p class="help-text">Las sesiones grupales tienen un costo adicional</p>
+              </div>
+            </div>
+
+            <!-- Para Paquete de Horas -->
+            <div id="detalles-paquete" style="display: none;">
+              <div class="form-group">
+                <label><i class="fas fa-box"></i> Cantidad de Horas del Paquete <span class="required">*</span></label>
+                <select id="paquete-horas">
+                  <option value="5">5 horas - 15% descuento</option>
+                  <option value="10">10 horas - 15% descuento</option>
+                  <option value="15">15 horas - 15% descuento</option>
+                  <option value="20">20 horas - 15% descuento</option>
+                  <option value="30">30 horas - 15% descuento</option>
+                </select>
+                <p class="help-text">Todos los paquetes incluyen 15% de descuento</p>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Nivel de Complejidad <span class="required">*</span></label>
+                <select id="complejidad-paquete">
+                  <option value="basico" data-factor="1.20">Básico (+20%)</option>
+                  <option value="intermedio" data-factor="1.35">Intermedio (+35%)</option>
+                  <option value="avanzado" data-factor="1.50">Avanzado (+50%)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Para Desarrollo de Trabajo -->
+            <div id="detalles-trabajo" style="display: none;">
+              <div class="form-group">
+                <label><i class="fas fa-tasks"></i> Tipo de Trabajo <span class="required">*</span></label>
+                <select id="tipo-trabajo">
+                  <option value="tarea" data-factor="1">Tarea o ejercicios (1-3 horas estimadas)</option>
+                  <option value="taller" data-factor="1.3">Taller o Quiz (2-4 horas estimadas)</option>
+                  <option value="proyecto-pequeno" data-factor="1.8">Proyecto pequeño (5-10 horas)</option>
+                  <option value="proyecto-mediano" data-factor="2.5">Proyecto mediano (10-20 horas)</option>
+                  <option value="proyecto-grande" data-factor="3.5">Proyecto grande (20+ horas)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Complejidad del Trabajo <span
+                    class="required">*</span></label>
+                <select id="complejidad-trabajo">
+                  <option value="basico" data-factor="1.15">Básico - Conocimientos fundamentales (+15%)</option>
+                  <option value="intermedio" data-factor="1.35">Intermedio - Requiere análisis (+35%)</option>
+                  <option value="avanzado" data-factor="1.55">Avanzado - Requiere investigación (+55%)</option>
+                  <option value="experto" data-factor="1.75">Experto - Alta complejidad técnica (+75%)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-calendar-alt"></i> Urgencia de Entrega <span class="required">*</span></label>
+                <select id="urgencia">
+                  <option value="normal" data-factor="1">Normal (7+ días) - Sin recargo</option>
+                  <option value="media" data-factor="1.15">Media urgencia (4-6 días) - +15%</option>
+                  <option value="alta" data-factor="1.30">Alta urgencia (2-3 días) - +30%</option>
+                  <option value="urgente" data-factor="1.50">Urgente (24-48 horas) - +50%</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-file-alt"></i> Extensión del Trabajo</label>
+                <select id="extension">
+                  <option value="corto" data-factor="1">Corto (1-5 páginas / ejercicios básicos)</option>
+                  <option value="medio" data-factor="1.15">Medio (5-15 páginas / proyecto estándar)</option>
+                  <option value="largo" data-factor="1.30">Largo (15-30 páginas / proyecto complejo)</option>
+                  <option value="muy-largo" data-factor="1.50">Muy largo (30+ páginas / sistema completo)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-comment-alt"></i> Descripción del Trabajo <span
+                    class="required">*</span></label>
+                <textarea id="descripcion-trabajo"
+                  placeholder="Describe brevemente qué necesitas: tema, requisitos específicos, entregables esperados, etc."></textarea>
+                <p class="help-text">Esta información ayuda a generar una cotización más precisa</p>
+              </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+              <h4 style="margin-bottom: 1rem; color: var(--dark-color);">
+                <i class="fas fa-user"></i> Información de Contacto
+              </h4>
+              <div class="form-group">
+                <label><i class="fas fa-user"></i> Nombre Completo <span class="required">*</span></label>
+                <input type="text" id="nombre" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span></label>
+                <input type="email" id="email" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-phone"></i> Teléfono / WhatsApp <span class="required">*</span></label>
+                <input type="tel" id="telefono" required>
+              </div>
+
+              <!-- Ubicación -->
+              <div
+                style="margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border-left: 4px solid var(--warning-color);">
+                <h4 style="color: var(--dark-color); margin-bottom: 1rem;">
+                  <i class="fas fa-map-marker-alt"></i> Ubicación para Asesoría Presencial
+                </h4>
+                <p style="color: var(--text-color); margin-bottom: 1rem; font-size: 0.95rem;">
+                  ¿Te encuentras en alguna de estas zonas fuera de Cúcuta?
+                </p>
+                <div class="radio-group" style="gap: 0.75rem;">
+                  <label class="radio-option" style="padding: 0.75rem;">
+                    <input type="radio" name="ubicacion" value="no" checked>
+                    <div>
+                      <h4 style="margin: 0; font-size: 1rem;"><i class="fas fa-city"></i> Cúcuta Centro</h4>
+                      <p class="help-text" style="margin: 0;">Sin recargo por ubicación</p>
+                    </div>
+                  </label>
+                  <label class="radio-option" style="padding: 0.75rem;">
+                    <input type="radio" name="ubicacion" value="si">
+                    <div>
+                      <h4 style="margin: 0; font-size: 1rem;"><i class="fas fa-map-marked-alt"></i> Zona Metropolitana
+                      </h4>
+                      <p class="help-text" style="margin: 0; color: var(--warning-color); font-weight: 600;">Los Patios,
+                        Villa del Rosario o Anillo Vial Occidental (+$8,000)</p>
+                    </div>
+                  </label>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
+                  <i class="fas fa-info-circle"></i> Este recargo solo aplica para sesiones presenciales. Las asesorías
+                  en línea no tienen costo adicional.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 4: Resumen y Cotización -->
+          <div class="form-section" id="step4">
+            <h3 style="margin-bottom: 1.5rem; color: var(--dark-color);">
+              <i class="fas fa-receipt"></i> Paso 4: Tu Cotización Personalizada
+            </h3>
+
+            <div class="summary-section">
+              <h4 style="margin-bottom: 1rem; color: var(--primary-color);">
+                <i class="fas fa-clipboard-check"></i> Resumen de Asesoría
+              </h4>
+              <div class="summary-item">
+                <span class="summary-label">Servicio:</span>
+                <span class="summary-value" id="resumen-servicio">-</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Modalidad:</span>
+                <span class="summary-value" id="resumen-modalidad">-</span>
+              </div>
+              <div class="summary-item" id="resumen-cantidad-container">
+                <span class="summary-label" id="resumen-cantidad-label">Cantidad:</span>
+                <span class="summary-value" id="resumen-cantidad">-</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Complejidad:</span>
+                <span class="summary-value" id="resumen-complejidad">-</span>
+              </div>
+              <div class="summary-item" id="resumen-detalles-container" style="display: none;">
+                <span class="summary-label">Detalles adicionales:</span>
+                <span class="summary-value" id="resumen-detalles">-</span>
+              </div>
+            </div>
+
+            <div class="price-breakdown">
+              <h4><i class="fas fa-calculator"></i> Desglose de Costos</h4>
+              <div class="breakdown-item">
+                <span>Tarifa base:</span>
+                <span id="breakdown-base">$0</span>
+              </div>
+              <div class="breakdown-item" id="breakdown-cantidad-container">
+                <span id="breakdown-cantidad-label">Cantidad:</span>
+                <span id="breakdown-cantidad">$0</span>
+              </div>
+              <div class="breakdown-item" id="breakdown-complejidad-container">
+                <span>Ajuste por complejidad:</span>
+                <span id="breakdown-complejidad">$0</span>
+              </div>
+              <div class="breakdown-item" id="breakdown-adicionales-container" style="display: none;">
+                <span id="breakdown-adicionales-label">Adicionales:</span>
+                <span id="breakdown-adicionales">$0</span>
+              </div>
+              <div class="breakdown-item" id="breakdown-descuento-container" style="display: none;">
+                <span>Descuento:</span>
+                <span id="breakdown-descuento" style="color: var(--success-color);">-$0</span>
+              </div>
+              <div class="breakdown-item" id="breakdown-ubicacion-container" style="display: none;">
+                <span>Recargo por ubicación:</span>
+                <span id="breakdown-ubicacion" style="color: var(--warning-color);">+$8,000</span>
+              </div>
+              <div class="breakdown-item">
+                <span>TOTAL:</span>
+                <span id="breakdown-total">$0 COP</span>
+              </div>
+            </div>
+
+            <div class="total-section">
+              <div class="total-label">
+                <i class="fas fa-hand-holding-usd"></i> Inversión Total
+              </div>
+              <div class="total-amount" id="precio-final">$0</div>
+              <div class="total-note">Pesos Colombianos (COP)</div>
+              <p style="margin-top: 1rem; font-size: 0.95rem;">
+                <i class="fas fa-info-circle"></i> Esta cotización es válida por 7 días
+              </p>
+            </div>
+
+            <div class="info-box" style="margin-top: 1.5rem;">
+              <i class="fas fa-check-circle"></i>
+              <strong>¿Qué incluye tu asesoría?</strong><br>
+              • Seguimiento posterior a la sesión<br>
+              • Resolución de dudas por WhatsApp<br>
+              • Certificado de participación (opcional)
+            </div>
+
+            <div
+              style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-radius: 10px; border-left: 4px solid var(--warning-color);">
+              <h4 style="color: var(--dark-color); margin-bottom: 0.5rem;">
+                <i class="fas fa-credit-card"></i> Métodos de Pago
+              </h4>
+              <p style="color: var(--text-color); margin: 0;">
+                • Transferencia bancaria / Nequi / Daviplata<br>
+                • Se requiere anticipo del 50% para confirmar<br>
+                • El saldo restante se paga antes de iniciar o al finalizar
+              </p>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="button-group">
+            <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
+              <i class="fas fa-arrow-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-primary" id="nextBtn">
+              Siguiente <i class="fas fa-arrow-right"></i>
+            </button>
+            <button type="button" class="btn btn-primary" id="sendQuoteBtn" style="display: none;">
+              <i class="fas fa-paper-plane"></i> Enviar Cotización
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <a href="index.html" id="homeBtn" class="floating-home-btn" title="Ir a la página principal">
+      <i class="fas fa-home"></i>
+    </a>
+
+    <div style="text-align: center; margin-top: 2rem; color: white;">
+      <p style="opacity: 0.9;">
+        <i class="fas fa-shield-alt"></i> Información 100% confidencial y segura<br>
+        <small>Ing. Joel Steven Pineda Rincón © 2025</small>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // CONFIGURACIÓN DEL BOT DE TELEGRAM
+    const TELEGRAM_BOT_TOKEN = 'AAG42YyO1TFdWNFxRywV2Wp097Zld5s-Oog';
+    const TELEGRAM_CHAT_ID = '7941395763';
+
+    // Variables globales
+    let currentStep = 1;
+    const totalSteps = 4;
+    let calculationData = {
+      servicio: '',
+      servicioNombre: '',
+      tarifaBase: 0,
+      modalidad: '',
+      modalidadMultiplicador: 1,
+      cantidad: 1,
+      complejidad: 1,
+      factoresAdicionales: 1,
+      descuento: 0,
+      ubicacionExtra: 0,
+      detalles: {}
+    };
+
+    // Elementos del DOM
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const sendQuoteBtn = document.getElementById('sendQuoteBtn');
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function () {
+      setupServiceSelection();
+      setupModalitySelection(); // CORRECCIÓN 1: Se ha modificado esta función.
+      setupDetailsForms();     // CORRECCIÓN 3: Se ha modificado esta función.
+      setupLocationSelection(); // CORRECCIÓN 2: Se ha modificado esta función.
+      updateStepIndicator();
+    });
+
+    // Configurar selección de ubicación
+    function setupLocationSelection() {
+      const ubicacionRadios = document.querySelectorAll('input[name="ubicacion"]');
+      ubicacionRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+          if (this.value === 'si') {
+            calculationData.ubicacionExtra = 8000;
+          } else {
+            calculationData.ubicacionExtra = 0;
+          }
+          // CORRECCIÓN 2: Forzar la actualización del resumen para mostrar los $8.000 si está en el Paso 4.
+          if (currentStep === totalSteps) {
+            showSummary();
+          }
+        });
+      });
+    }
+
+    // Configurar selección de servicio
+    function setupServiceSelection() {
+      const serviceCards = document.querySelectorAll('.option-card');
+      serviceCards.forEach(card => {
+        card.addEventListener('click', function () {
+          serviceCards.forEach(c => c.classList.remove('selected'));
+          this.classList.add('selected');
+          calculationData.servicio = this.dataset.service;
+          calculationData.servicioNombre = this.querySelector('h4').textContent;
+          calculationData.tarifaBase = parseInt(this.dataset.rate);
+        });
+      });
+    }
+
+    // Configurar selección de modalidad
+    function setupModalitySelection() {
+      // CORRECCIÓN 1: Se limita el selector para que SÓLO afecte a los radio-option DENTRO del Paso 2.
+      const radioOptions = document.querySelectorAll('#step2 .radio-option');
+      radioOptions.forEach(option => {
+        option.addEventListener('click', function () {
+          const radio = this.querySelector('input[type="radio"]');
+          radio.checked = true;
+          // Usamos un selector más específico para deseleccionar solo en el paso 2
+          document.querySelectorAll('#step2 .radio-option').forEach(opt => opt.classList.remove('selected'));
+          this.classList.add('selected');
+
+          calculationData.modalidad = radio.value;
+          calculationData.modalidadMultiplicador = parseFloat(radio.dataset.multiplier);
+
+          // Mostrar/ocultar secciones de detalles según modalidad
+          showDetailsSection(radio.value);
+        });
+      });
+    }
+
+    // Mostrar sección de detalles según modalidad
+    function showDetailsSection(modalidad) {
+      document.getElementById('detalles-sesion').style.display = 'none';
+      document.getElementById('detalles-paquete').style.display = 'none';
+      document.getElementById('detalles-trabajo').style.display = 'none';
+
+      if (modalidad === 'sesion') {
+        document.getElementById('detalles-sesion').style.display = 'block';
+      } else if (modalidad === 'paquete') {
+        document.getElementById('detalles-paquete').style.display = 'block';
+      } else if (modalidad === 'trabajo') {
+        document.getElementById('detalles-trabajo').style.display = 'block';
+      }
+    }
+
+    // Configurar formularios de detalles
+    function setupDetailsForms() {
+      // CORRECCIÓN 3: Solo agregamos el listener de cambio (updateCalculation) a los campos que afectan el COSTO.
+      // Se excluyen los campos de contacto (nombre, email, telefono) y la ubicación.
+      const calculoInputs = document.querySelectorAll('#detalles-sesion input, #detalles-sesion select, #detalles-paquete select, #detalles-trabajo select, #detalles-trabajo textarea');
+
+      calculoInputs.forEach(input => {
+        input.addEventListener('change', updateCalculation);
+        // También agregamos 'input' para un mejor comportamiento en campos de número/texto
+        input.addEventListener('input', updateCalculation);
+      });
+    }
+
+    // Actualizar cálculo
+    function updateCalculation() {
+      // Reiniciar factores para que el cálculo sea correcto con la modalidad actual
+      calculationData.complejidad = 1;
+      calculationData.factoresAdicionales = 1;
+      calculationData.descuento = 0;
+
+      if (calculationData.modalidad === 'sesion') {
+        const horasInput = document.getElementById('horas');
+        const horas = parseFloat(horasInput.value) || 1; // Asegurar que es al menos 1
+        horasInput.value = horas;
+
+        const complejidadSelect = document.getElementById('complejidad-sesion');
+        const tipoSesionSelect = document.getElementById('tipo-sesion');
+
+        calculationData.cantidad = horas;
+        calculationData.complejidad = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
+        calculationData.factoresAdicionales = parseFloat(tipoSesionSelect.options[tipoSesionSelect.selectedIndex].dataset.factor);
+
+        calculationData.detalles = {
+          horas: horas,
+          complejidadNombre: complejidadSelect.options[complejidadSelect.selectedIndex].text,
+          tipoSesion: tipoSesionSelect.options[tipoSesionSelect.selectedIndex].text
         };
+      }
+      else if (calculationData.modalidad === 'paquete') {
+        const paqueteSelect = document.getElementById('paquete-horas');
+        const complejidadSelect = document.getElementById('complejidad-paquete');
+        const paqueteHoras = parseInt(paqueteSelect.value);
 
-        // Elementos del DOM
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const sendQuoteBtn = document.getElementById('sendQuoteBtn');
+        calculationData.cantidad = paqueteHoras;
+        calculationData.complejidad = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
+        calculationData.descuento = 0.15; // 15% descuento
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            setupServiceSelection();
-            setupModalitySelection();
-            setupDetailsForms();
-            setupLocationSelection();
-            updateStepIndicator();
+        calculationData.detalles = {
+          horas: paqueteHoras,
+          complejidadNombre: complejidadSelect.options[complejidadSelect.selectedIndex].text,
+          descuento: '15%'
+        };
+      }
+      else if (calculationData.modalidad === 'trabajo') {
+        const tipoTrabajoSelect = document.getElementById('tipo-trabajo');
+        const complejidadSelect = document.getElementById('complejidad-trabajo');
+        const urgenciaSelect = document.getElementById('urgencia');
+        const extensionSelect = document.getElementById('extension');
+
+        const tipoFactor = parseFloat(tipoTrabajoSelect.options[tipoTrabajoSelect.selectedIndex].dataset.factor);
+        const complejidadFactor = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
+        const urgenciaFactor = parseFloat(urgenciaSelect.options[urgenciaSelect.selectedIndex].dataset.factor);
+        const extensionFactor = parseFloat(extensionSelect.options[extensionSelect.selectedIndex].dataset.factor);
+
+        calculationData.cantidad = tipoFactor;
+        calculationData.complejidad = complejidadFactor;
+        calculationData.factoresAdicionales = urgenciaFactor * extensionFactor;
+
+        calculationData.detalles = {
+          tipoTrabajo: tipoTrabajoSelect.options[tipoTrabajoSelect.selectedIndex].text,
+          complejidad: complejidadSelect.options[complejidadSelect.selectedIndex].text,
+          urgencia: urgenciaSelect.options[urgenciaSelect.selectedIndex].text,
+          extension: extensionSelect.options[extensionSelect.selectedIndex].text,
+          descripcion: document.getElementById('descripcion-trabajo').value
+        };
+      }
+    }
+
+    // Calcular precio final
+    function calculateFinalPrice() {
+      updateCalculation();
+
+      let subtotal = 0;
+      let tarifaBasePorUnidad = calculationData.tarifaBase;
+
+      // Calcular costo base por horas/unidad
+      if (calculationData.modalidad === 'trabajo') {
+        // En 'trabajo', se usa el multiplicador de modalidad y la 'cantidad' (tipoFactor)
+        tarifaBasePorUnidad = calculationData.tarifaBase * calculationData.modalidadMultiplicador;
+        subtotal = tarifaBasePorUnidad * calculationData.cantidad;
+      } else {
+        // Para 'sesion' y 'paquete', es base * horas
+        subtotal = calculationData.tarifaBase * calculationData.cantidad;
+      }
+
+      // Aplicar complejidad y factores adicionales
+      let costoAjustado = subtotal * calculationData.complejidad * calculationData.factoresAdicionales;
+
+      // Aplicar descuento si existe
+      const descuentoMonto = costoAjustado * calculationData.descuento;
+      let total = costoAjustado - descuentoMonto;
+
+      // Agregar recargo por ubicación
+      total += calculationData.ubicacionExtra;
+
+      return {
+        tarifaBase: calculationData.tarifaBase,
+        subtotal: costoAjustado, // El costo con todos los multiplicadores antes de descuento y ubicación
+        descuento: descuentoMonto,
+        ubicacion: calculationData.ubicacionExtra,
+        total: Math.round(total)
+      };
+    }
+
+    // Mostrar resumen
+    function showSummary() {
+      const prices = calculateFinalPrice();
+
+      // Resumen
+      document.getElementById('resumen-servicio').textContent = calculationData.servicioNombre;
+
+      let modalidadTexto = '';
+      if (calculationData.modalidad === 'sesion') modalidadTexto = 'Sesión por Hora';
+      else if (calculationData.modalidad === 'paquete') modalidadTexto = 'Paquete de Horas';
+      else if (calculationData.modalidad === 'trabajo') modalidadTexto = 'Desarrollo de Trabajo';
+      document.getElementById('resumen-modalidad').textContent = modalidadTexto;
+
+      // Cantidad
+      let cantidadTexto = '';
+      let tarifaBasePorUnidad = calculationData.tarifaBase;
+
+      if (calculationData.modalidad === 'sesion') {
+        cantidadTexto = `${calculationData.detalles.horas} hora(s)`;
+        document.getElementById('resumen-cantidad-label').textContent = 'Duración:';
+      } else if (calculationData.modalidad === 'paquete') {
+        cantidadTexto = `${calculationData.detalles.horas} horas`;
+        document.getElementById('resumen-cantidad-label').textContent = 'Paquete:';
+      } else if (calculationData.modalidad === 'trabajo') {
+        cantidadTexto = calculationData.detalles.tipoTrabajo;
+        document.getElementById('resumen-cantidad-label').textContent = 'Tipo:';
+        tarifaBasePorUnidad = calculationData.tarifaBase * calculationData.modalidadMultiplicador;
+      }
+      document.getElementById('resumen-cantidad').textContent = cantidadTexto;
+
+      // Complejidad
+      document.getElementById('resumen-complejidad').textContent =
+        calculationData.modalidad === 'trabajo' ?
+          calculationData.detalles.complejidad :
+          calculationData.detalles.complejidadNombre;
+
+      // Detalles adicionales
+      if (calculationData.modalidad === 'trabajo') {
+        document.getElementById('resumen-detalles-container').style.display = 'flex';
+        document.getElementById('resumen-detalles').textContent =
+          `${calculationData.detalles.urgencia} | ${calculationData.detalles.extension}`;
+      } else if (calculationData.modalidad === 'sesion') {
+        document.getElementById('resumen-detalles-container').style.display = 'flex';
+        document.getElementById('resumen-detalles').textContent = calculationData.detalles.tipoSesion;
+      } else {
+        document.getElementById('resumen-detalles-container').style.display = 'none';
+      }
+
+      // Desglose de costos
+      document.getElementById('breakdown-base').textContent = formatCurrency(tarifaBasePorUnidad);
+
+      // Costo por Cantidad/Horas
+      const costoBasePorCantidad = tarifaBasePorUnidad * (calculationData.modalidad !== 'trabajo' ? calculationData.cantidad : 1);
+
+      if (calculationData.modalidad !== 'trabajo') { // Solo aplica a Sesión y Paquete (donde Cantidad = Horas)
+        document.getElementById('breakdown-cantidad-label').textContent = `${calculationData.detalles.horas} hora(s) (Base):`;
+        document.getElementById('breakdown-cantidad').textContent = formatCurrency(costoBasePorCantidad);
+        document.getElementById('breakdown-cantidad-container').style.display = 'flex';
+      } else {
+        // En modo 'trabajo', el costo base ya incluye el factor de modalidad y el factor de 'tipo de trabajo'
+        document.getElementById('breakdown-cantidad-label').textContent = `Tipo de Trabajo (${calculationData.detalles.tipoTrabajo}):`;
+        document.getElementById('breakdown-cantidad').textContent = formatCurrency(prices.subtotal / (calculationData.complejidad * calculationData.factoresAdicionales));
+        document.getElementById('breakdown-cantidad-container').style.display = 'flex';
+      }
+
+      // Complejidad
+      const factorComplejidad = calculationData.complejidad;
+      let costoBaseParaAjuste = prices.subtotal / factorComplejidad;
+      if (calculationData.modalidad === 'trabajo') {
+        costoBaseParaAjuste = prices.subtotal / (factorComplejidad * calculationData.factoresAdicionales);
+      }
+      const aumentoComplejidad = costoBaseParaAjuste * (factorComplejidad - 1);
+
+      if (aumentoComplejidad > 0 && factorComplejidad > 1) {
+        document.getElementById('breakdown-complejidad').textContent = `+${formatCurrency(aumentoComplejidad)}`;
+        document.getElementById('breakdown-complejidad-container').style.display = 'flex';
+      } else {
+        document.getElementById('breakdown-complejidad-container').style.display = 'none';
+      }
+
+      // Adicionales (Sesión Grupal o Urgencia/Extensión)
+      const factorAdicional = calculationData.factoresAdicionales;
+      let aumentoAdicionales = 0;
+
+      if (factorAdicional > 1) {
+        if (calculationData.modalidad === 'sesion') {
+          // Aumento de sesión grupal se aplica al (base * horas * complejidad)
+          const costoPre = costoBasePorCantidad * factorComplejidad;
+          aumentoAdicionales = costoPre * (factorAdicional - 1);
+        } else if (calculationData.modalidad === 'trabajo') {
+          // Aumento de urgencia/extensión se aplica al (base * factorTrabajo * tipoTrabajo * complejidad)
+          const costoPre = prices.subtotal / factorAdicional;
+          aumentoAdicionales = costoPre * (factorAdicional - 1);
+        }
+      }
+
+      if (aumentoAdicionales > 0 && factorAdicional > 1) {
+        document.getElementById('breakdown-adicionales-label').textContent =
+          calculationData.modalidad === 'sesion' ? 'Tipo de sesión:' : 'Urgencia/Extensión:';
+        document.getElementById('breakdown-adicionales').textContent = `+${formatCurrency(aumentoAdicionales)}`;
+        document.getElementById('breakdown-adicionales-container').style.display = 'flex';
+      } else {
+        document.getElementById('breakdown-adicionales-container').style.display = 'none';
+      }
+
+      // Descuento
+      if (prices.descuento > 0) {
+        document.getElementById('breakdown-descuento').textContent = `-${formatCurrency(prices.descuento)}`;
+        document.getElementById('breakdown-descuento-container').style.display = 'flex';
+      } else {
+        document.getElementById('breakdown-descuento-container').style.display = 'none';
+      }
+
+      // Ubicación (Muestra +$8.000)
+      if (prices.ubicacion > 0) {
+        document.getElementById('breakdown-ubicacion').textContent = `+${formatCurrency(prices.ubicacion)}`;
+        document.getElementById('breakdown-ubicacion-container').style.display = 'flex';
+      } else {
+        document.getElementById('breakdown-ubicacion-container').style.display = 'none';
+      }
+
+      // Total
+      document.getElementById('breakdown-total').textContent = formatCurrency(prices.total) + ' COP';
+      document.getElementById('precio-final').textContent = formatCurrency(prices.total);
+    }
+
+    // Formatear moneda
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    // Navegación entre pasos
+    nextBtn.addEventListener('click', function () {
+      if (validateStep(currentStep)) {
+        if (currentStep < totalSteps) {
+          currentStep++;
+          showStep(currentStep);
+          if (currentStep === totalSteps) {
+            // Si se avanza al paso 4, forzar el cálculo y resumen.
+            showSummary();
+          }
+        }
+      }
+    });
+
+    prevBtn.addEventListener('click', function () {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    });
+
+    // Validar paso actual
+    function validateStep(step) {
+      if (step === 1) {
+        if (!calculationData.servicio) {
+          alert('Por favor selecciona un servicio');
+          return false;
+        }
+      } else if (step === 2) {
+        if (!calculationData.modalidad) {
+          alert('Por favor selecciona una modalidad');
+          return false;
+        }
+      } else if (step === 3) {
+        const nombre = document.getElementById('nombre').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        if (!nombre || !email || !telefono) {
+          alert('Por favor completa todos los campos de contacto');
+          return false;
+        }
+
+        // Validar campos específicos de la modalidad
+        if (calculationData.modalidad === 'sesion') {
+          const horas = parseFloat(document.getElementById('horas').value);
+          if (isNaN(horas) || horas < 1) {
+            alert('Por favor ingresa una cantidad de horas válida (mínimo 1)');
+            return false;
+          }
+        } else if (calculationData.modalidad === 'trabajo') {
+          const descripcion = document.getElementById('descripcion-trabajo').value.trim();
+          if (!descripcion) {
+            alert('Por favor describe el trabajo que necesitas');
+            return false;
+          }
+        }
+
+        // Asegurarse de actualizar el cálculo ANTES de avanzar al resumen
+        updateCalculation();
+      }
+      return true;
+    }
+
+    // Mostrar paso específico
+    function showStep(step) {
+      // Ocultar todas las secciones
+      document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Mostrar sección actual
+      document.getElementById(`step${step}`).classList.add('active');
+
+      // Si se regresa al paso 3, asegurar que la sección de detalles de la modalidad se muestre
+      if (step === 3 && calculationData.modalidad) {
+        showDetailsSection(calculationData.modalidad);
+      }
+
+      // Actualizar indicador de pasos
+      updateStepIndicator();
+
+      // Actualizar botones
+      prevBtn.style.display = step === 1 ? 'none' : 'block';
+
+      if (step === totalSteps) {
+        nextBtn.style.display = 'none';
+        sendQuoteBtn.style.display = 'block';
+      } else {
+        nextBtn.style.display = 'block';
+        sendQuoteBtn.style.display = 'none';
+      }
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Actualizar indicador de pasos
+    function updateStepIndicator() {
+      document.querySelectorAll('.step').forEach((step, index) => {
+        const stepNum = index + 1;
+        step.classList.remove('active', 'completed');
+
+        if (stepNum === currentStep) {
+          step.classList.add('active');
+        } else if (stepNum < currentStep) {
+          step.classList.add('completed');
+        }
+      });
+    }
+
+    // Enviar cotización por Telegram
+    sendQuoteBtn.addEventListener('click', async function () {
+      const nombre = document.getElementById('nombre').value;
+      const email = document.getElementById('email').value;
+      const telefono = document.getElementById('telefono').value;
+      const ubicacion = document.querySelector('input[name="ubicacion"]:checked').value;
+      const ubicacionTexto = ubicacion === 'si' ? 'Zona Metropolitana (Los Patios/Villa del Rosario/Anillo Vial)' : 'Cúcuta Centro';
+      const prices = calculateFinalPrice();
+
+      let detallesTexto = '';
+      if (calculationData.modalidad === 'sesion') {
+        detallesTexto = `
+  📊 <b>Detalles:</b>
+  • Horas: ${calculationData.detalles.horas}
+  • Complejidad: ${calculationData.detalles.complejidadNombre}
+  • Tipo: ${calculationData.detalles.tipoSesion}`;
+      } else if (calculationData.modalidad === 'paquete') {
+        detallesTexto = `
+  📊 <b>Detalles:</b>
+  • Paquete: ${calculationData.detalles.horas} horas
+  • Complejidad: ${calculationData.detalles.complejidadNombre}
+  • Descuento: 15%`;
+      } else if (calculationData.modalidad === 'trabajo') {
+        detallesTexto = `
+  📊 <b>Detalles:</b>
+  • Tipo: ${calculationData.detalles.tipoTrabajo}
+  • Complejidad: ${calculationData.detalles.complejidad}
+  • Urgencia: ${calculationData.detalles.urgencia}
+  • Extensión: ${calculationData.detalles.extension}
+  • Descripción: ${calculationData.detalles.descripcion}`;
+      }
+
+      const mensaje = `
+  🎯 <b>NUEVA COTIZACIÓN DE ASESORÍA</b>
+  
+  👤 <b>Cliente:</b>
+  • Nombre: ${nombre}
+  • Email: ${email}
+  • Teléfono: ${telefono}
+  • Ubicación: ${ubicacionTexto}
+  
+  📚 <b>Servicio:</b> ${calculationData.servicioNombre}
+  🎓 <b>Modalidad:</b> ${document.getElementById('resumen-modalidad').textContent}
+  ${detallesTexto}
+  
+  💰 <b>COTIZACIÓN:</b>
+  • Tarifa base: ${formatCurrency(prices.tarifaBase)}
+  • Subtotal Ajustado: ${formatCurrency(prices.subtotal)}
+  ${prices.descuento > 0 ? `• Descuento: -${formatCurrency(prices.descuento)}` : ''}
+  ${prices.ubicacion > 0 ? `• Recargo ubicación: +${formatCurrency(prices.ubicacion)}` : ''}
+  • <b>TOTAL: ${formatCurrency(prices.total)} COP</b>
+  
+  📅 Cotización válida por 7 días
+          `;
+
+      sendQuoteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+      sendQuoteBtn.disabled = true;
+
+      try {
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: mensaje,
+            parse_mode: 'HTML'
+          })
         });
 
-        // Configurar selección de ubicación
-        function setupLocationSelection() {
-            const ubicacionRadios = document.querySelectorAll('input[name="ubicacion"]');
-            ubicacionRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.value === 'si') {
-                        calculationData.ubicacionExtra = 8000;
-                    } else {
-                        calculationData.ubicacionExtra = 0;
-                    }
-                });
-            });
+        if (response.ok) {
+          alert('✅ ¡Cotización enviada exitosamente!\n\nTe contactaré pronto para confirmar los detalles.');
+          location.reload();
+        } else {
+          throw new Error('Error al enviar');
         }
-
-        // Configurar selección de servicio
-        function setupServiceSelection() {
-            const serviceCards = document.querySelectorAll('.option-card');
-            serviceCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    serviceCards.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    calculationData.servicio = this.dataset.service;
-                    calculationData.servicioNombre = this.querySelector('h4').textContent;
-                    calculationData.tarifaBase = parseInt(this.dataset.rate);
-                });
-            });
-        }
-
-        // Configurar selección de modalidad
-        function setupModalitySelection() {
-            const radioOptions = document.querySelectorAll('.radio-option');
-            radioOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
-                    radioOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    
-                    calculationData.modalidad = radio.value;
-                    calculationData.modalidadMultiplicador = parseFloat(radio.dataset.multiplier);
-                    
-                    // Mostrar/ocultar secciones de detalles según modalidad
-                    showDetailsSection(radio.value);
-                });
-            });
-        }
-
-        // Mostrar sección de detalles según modalidad
-        function showDetailsSection(modalidad) {
-            document.getElementById('detalles-sesion').style.display = 'none';
-            document.getElementById('detalles-paquete').style.display = 'none';
-            document.getElementById('detalles-trabajo').style.display = 'none';
-            
-            if (modalidad === 'sesion') {
-                document.getElementById('detalles-sesion').style.display = 'block';
-            } else if (modalidad === 'paquete') {
-                document.getElementById('detalles-paquete').style.display = 'block';
-            } else if (modalidad === 'trabajo') {
-                document.getElementById('detalles-trabajo').style.display = 'block';
-            }
-        }
-
-        // Configurar formularios de detalles
-        function setupDetailsForms() {
-            // Listeners para actualización en tiempo real
-            const inputs = document.querySelectorAll('#step3 input, #step3 select, #step3 textarea');
-            inputs.forEach(input => {
-                input.addEventListener('change', updateCalculation);
-            });
-        }
-
-        // Actualizar cálculo
-        function updateCalculation() {
-            if (calculationData.modalidad === 'sesion') {
-                const horas = parseFloat(document.getElementById('horas').value) || 1;
-                const complejidadSelect = document.getElementById('complejidad-sesion');
-                const tipoSesionSelect = document.getElementById('tipo-sesion');
-                
-                calculationData.cantidad = horas;
-                calculationData.complejidad = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
-                calculationData.factoresAdicionales = parseFloat(tipoSesionSelect.options[tipoSesionSelect.selectedIndex].dataset.factor);
-                
-                calculationData.detalles = {
-                    horas: horas,
-                    complejidadNombre: complejidadSelect.options[complejidadSelect.selectedIndex].text,
-                    tipoSesion: tipoSesionSelect.options[tipoSesionSelect.selectedIndex].text
-                };
-            } 
-            else if (calculationData.modalidad === 'paquete') {
-                const paqueteHoras = parseInt(document.getElementById('paquete-horas').value);
-                const complejidadSelect = document.getElementById('complejidad-paquete');
-                
-                calculationData.cantidad = paqueteHoras;
-                calculationData.complejidad = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
-                calculationData.descuento = 0.15; // 15% descuento
-                
-                calculationData.detalles = {
-                    horas: paqueteHoras,
-                    complejidadNombre: complejidadSelect.options[complejidadSelect.selectedIndex].text,
-                    descuento: '15%'
-                };
-            }
-            else if (calculationData.modalidad === 'trabajo') {
-                const tipoTrabajoSelect = document.getElementById('tipo-trabajo');
-                const complejidadSelect = document.getElementById('complejidad-trabajo');
-                const urgenciaSelect = document.getElementById('urgencia');
-                const extensionSelect = document.getElementById('extension');
-                
-                const tipoFactor = parseFloat(tipoTrabajoSelect.options[tipoTrabajoSelect.selectedIndex].dataset.factor);
-                const complejidadFactor = parseFloat(complejidadSelect.options[complejidadSelect.selectedIndex].dataset.factor);
-                const urgenciaFactor = parseFloat(urgenciaSelect.options[urgenciaSelect.selectedIndex].dataset.factor);
-                const extensionFactor = parseFloat(extensionSelect.options[extensionSelect.selectedIndex].dataset.factor);
-                
-                calculationData.cantidad = tipoFactor;
-                calculationData.complejidad = complejidadFactor;
-                calculationData.factoresAdicionales = urgenciaFactor * extensionFactor;
-                
-                calculationData.detalles = {
-                    tipoTrabajo: tipoTrabajoSelect.options[tipoTrabajoSelect.selectedIndex].text,
-                    complejidad: complejidadSelect.options[complejidadSelect.selectedIndex].text,
-                    urgencia: urgenciaSelect.options[urgenciaSelect.selectedIndex].text,
-                    extension: extensionSelect.options[extensionSelect.selectedIndex].text,
-                    descripcion: document.getElementById('descripcion-trabajo').value
-                };
-            }
-        }
-
-        // Calcular precio final
-        function calculateFinalPrice() {
-            updateCalculation();
-            
-            let subtotal = calculationData.tarifaBase * calculationData.cantidad * 
-                          calculationData.complejidad * calculationData.factoresAdicionales;
-            
-            // Aplicar multiplicador de modalidad
-            if (calculationData.modalidad === 'trabajo') {
-                subtotal = calculationData.tarifaBase * calculationData.modalidadMultiplicador * 
-                          calculationData.cantidad * calculationData.complejidad * 
-                          calculationData.factoresAdicionales;
-            }
-            
-            // Aplicar descuento si existe
-            const descuentoMonto = subtotal * calculationData.descuento;
-            let total = subtotal - descuentoMonto;
-            
-            // Agregar recargo por ubicación
-            total += calculationData.ubicacionExtra;
-            
-            return {
-                tarifaBase: calculationData.tarifaBase,
-                subtotal: subtotal,
-                descuento: descuentoMonto,
-                ubicacion: calculationData.ubicacionExtra,
-                total: Math.round(total)
-            };
-        }
-
-        // Mostrar resumen
-        function showSummary() {
-            const prices = calculateFinalPrice();
-            
-            // Resumen
-            document.getElementById('resumen-servicio').textContent = calculationData.servicioNombre;
-            
-            let modalidadTexto = '';
-            if (calculationData.modalidad === 'sesion') modalidadTexto = 'Sesión por Hora';
-            else if (calculationData.modalidad === 'paquete') modalidadTexto = 'Paquete de Horas';
-            else if (calculationData.modalidad === 'trabajo') modalidadTexto = 'Desarrollo de Trabajo';
-            document.getElementById('resumen-modalidad').textContent = modalidadTexto;
-            
-            // Cantidad
-            let cantidadTexto = '';
-            if (calculationData.modalidad === 'sesion') {
-                cantidadTexto = `${calculationData.detalles.horas} hora(s)`;
-                document.getElementById('resumen-cantidad-label').textContent = 'Duración:';
-            } else if (calculationData.modalidad === 'paquete') {
-                cantidadTexto = `${calculationData.detalles.horas} horas`;
-                document.getElementById('resumen-cantidad-label').textContent = 'Paquete:';
-            } else if (calculationData.modalidad === 'trabajo') {
-                cantidadTexto = calculationData.detalles.tipoTrabajo;
-                document.getElementById('resumen-cantidad-label').textContent = 'Tipo:';
-            }
-            document.getElementById('resumen-cantidad').textContent = cantidadTexto;
-            
-            // Complejidad
-            document.getElementById('resumen-complejidad').textContent = 
-                calculationData.modalidad === 'trabajo' ? 
-                calculationData.detalles.complejidad : 
-                calculationData.detalles.complejidadNombre;
-            
-            // Detalles adicionales
-            if (calculationData.modalidad === 'trabajo') {
-                document.getElementById('resumen-detalles-container').style.display = 'flex';
-                document.getElementById('resumen-detalles').textContent = 
-                    `${calculationData.detalles.urgencia} | ${calculationData.detalles.extension}`;
-            } else if (calculationData.modalidad === 'sesion') {
-                document.getElementById('resumen-detalles-container').style.display = 'flex';
-                document.getElementById('resumen-detalles').textContent = calculationData.detalles.tipoSesion;
-            } else {
-                document.getElementById('resumen-detalles-container').style.display = 'none';
-            }
-            
-            // Desglose de costos
-            document.getElementById('breakdown-base').textContent = formatCurrency(calculationData.tarifaBase);
-            
-            if (calculationData.modalidad === 'sesion') {
-                document.getElementById('breakdown-cantidad-label').textContent = `${calculationData.detalles.horas} hora(s):`;
-                document.getElementById('breakdown-cantidad').textContent = 
-                    formatCurrency(calculationData.tarifaBase * calculationData.detalles.horas);
-                document.getElementById('breakdown-cantidad-container').style.display = 'flex';
-            } else if (calculationData.modalidad === 'paquete') {
-                document.getElementById('breakdown-cantidad-label').textContent = `${calculationData.detalles.horas} horas:`;
-                document.getElementById('breakdown-cantidad').textContent = 
-                    formatCurrency(calculationData.tarifaBase * calculationData.detalles.horas);
-                document.getElementById('breakdown-cantidad-container').style.display = 'flex';
-            } else {
-                document.getElementById('breakdown-cantidad-container').style.display = 'none';
-            }
-            
-            // Complejidad
-            const complejidadAumento = prices.tarifaBase * calculationData.cantidad * (calculationData.complejidad - 1);
-            if (complejidadAumento > 0) {
-                document.getElementById('breakdown-complejidad').textContent = `+${formatCurrency(complejidadAumento)}`;
-                document.getElementById('breakdown-complejidad-container').style.display = 'flex';
-            } else {
-                document.getElementById('breakdown-complejidad-container').style.display = 'none';
-            }
-            
-            // Adicionales
-            if (calculationData.factoresAdicionales > 1) {
-                const adicionalesAumento = prices.subtotal / calculationData.factoresAdicionales * (calculationData.factoresAdicionales - 1);
-                document.getElementById('breakdown-adicionales-label').textContent = 
-                    calculationData.modalidad === 'sesion' ? 'Tipo de sesión:' : 'Urgencia/Extensión:';
-                document.getElementById('breakdown-adicionales').textContent = `+${formatCurrency(adicionalesAumento)}`;
-                document.getElementById('breakdown-adicionales-container').style.display = 'flex';
-            } else {
-                document.getElementById('breakdown-adicionales-container').style.display = 'none';
-            }
-            
-            // Descuento
-            if (prices.descuento > 0) {
-                document.getElementById('breakdown-descuento').textContent = `-${formatCurrency(prices.descuento)}`;
-                document.getElementById('breakdown-descuento-container').style.display = 'flex';
-            } else {
-                document.getElementById('breakdown-descuento-container').style.display = 'none';
-            }
-            
-            // Ubicación
-            if (prices.ubicacion > 0) {
-                document.getElementById('breakdown-ubicacion').textContent = `+${formatCurrency(prices.ubicacion)}`;
-                document.getElementById('breakdown-ubicacion-container').style.display = 'flex';
-            } else {
-                document.getElementById('breakdown-ubicacion-container').style.display = 'none';
-            }
-            
-            // Total
-            document.getElementById('breakdown-total').textContent = formatCurrency(prices.total) + ' COP';
-            document.getElementById('precio-final').textContent = formatCurrency(prices.total);
-        }
-
-        // Formatear moneda
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('es-CO', {
-                style: 'currency',
-                currency: 'COP',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
-        }
-
-        // Navegación entre pasos
-        nextBtn.addEventListener('click', function() {
-            if (validateStep(currentStep)) {
-                if (currentStep < totalSteps) {
-                    currentStep++;
-                    showStep(currentStep);
-                    if (currentStep === totalSteps) {
-                        showSummary();
-                    }
-                }
-            }
-        });
-
-        prevBtn.addEventListener('click', function() {
-            if (currentStep > 1) {
-                currentStep--;
-                showStep(currentStep);
-            }
-        });
-
-        // Validar paso actual
-        function validateStep(step) {
-            if (step === 1) {
-                if (!calculationData.servicio) {
-                    alert('Por favor selecciona un servicio');
-                    return false;
-                }
-            } else if (step === 2) {
-                if (!calculationData.modalidad) {
-                    alert('Por favor selecciona una modalidad');
-                    return false;
-                }
-            } else if (step === 3) {
-                const nombre = document.getElementById('nombre').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const telefono = document.getElementById('telefono').value.trim();
-                
-                if (!nombre || !email || !telefono) {
-                    alert('Por favor completa todos los campos de contacto');
-                    return false;
-                }
-                
-                if (calculationData.modalidad === 'trabajo') {
-                    const descripcion = document.getElementById('descripcion-trabajo').value.trim();
-                    if (!descripcion) {
-                        alert('Por favor describe el trabajo que necesitas');
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        // Mostrar paso específico
-        function showStep(step) {
-            // Ocultar todas las secciones
-            document.querySelectorAll('.form-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Mostrar sección actual
-            document.getElementById(`step${step}`).classList.add('active');
-            
-            // Actualizar indicador de pasos
-            updateStepIndicator();
-            
-            // Actualizar botones
-            prevBtn.style.display = step === 1 ? 'none' : 'block';
-            
-            if (step === totalSteps) {
-                nextBtn.style.display = 'none';
-                sendQuoteBtn.style.display = 'block';
-            } else {
-                nextBtn.style.display = 'block';
-                sendQuoteBtn.style.display = 'none';
-            }
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Actualizar indicador de pasos
-        function updateStepIndicator() {
-            document.querySelectorAll('.step').forEach((step, index) => {
-                const stepNum = index + 1;
-                step.classList.remove('active', 'completed');
-                
-                if (stepNum === currentStep) {
-                    step.classList.add('active');
-                } else if (stepNum < currentStep) {
-                    step.classList.add('completed');
-                }
-            });
-        }
-
-        // Enviar cotización por Telegram
-        sendQuoteBtn.addEventListener('click', async function() {
-            const nombre = document.getElementById('nombre').value;
-            const email = document.getElementById('email').value;
-            const telefono = document.getElementById('telefono').value;
-            const ubicacion = document.querySelector('input[name="ubicacion"]:checked').value;
-            const ubicacionTexto = ubicacion === 'si' ? 'Zona Metropolitana (Los Patios/Villa del Rosario/Anillo Vial)' : 'Cúcuta Centro';
-            const prices = calculateFinalPrice();
-            
-            let detallesTexto = '';
-            if (calculationData.modalidad === 'sesion') {
-                detallesTexto = `
-📊 <b>Detalles:</b>
-• Horas: ${calculationData.detalles.horas}
-• Complejidad: ${calculationData.detalles.complejidadNombre}
-• Tipo: ${calculationData.detalles.tipoSesion}`;
-            } else if (calculationData.modalidad === 'paquete') {
-                detallesTexto = `
-📊 <b>Detalles:</b>
-• Paquete: ${calculationData.detalles.horas} horas
-• Complejidad: ${calculationData.detalles.complejidadNombre}
-• Descuento: 15%`;
-            } else if (calculationData.modalidad === 'trabajo') {
-                detallesTexto = `
-📊 <b>Detalles:</b>
-• Tipo: ${calculationData.detalles.tipoTrabajo}
-• Complejidad: ${calculationData.detalles.complejidad}
-• Urgencia: ${calculationData.detalles.urgencia}
-• Extensión: ${calculationData.detalles.extension}
-• Descripción: ${calculationData.detalles.descripcion}`;
-            }
-            
-            const mensaje = `
-🎯 <b>NUEVA COTIZACIÓN DE ASESORÍA</b>
-
-👤 <b>Cliente:</b>
-• Nombre: ${nombre}
-• Email: ${email}
-• Teléfono: ${telefono}
-• Ubicación: ${ubicacionTexto}
-
-📚 <b>Servicio:</b> ${calculationData.servicioNombre}
-🎓 <b>Modalidad:</b> ${document.getElementById('resumen-modalidad').textContent}
-${detallesTexto}
-
-💰 <b>COTIZACIÓN:</b>
-• Tarifa base: ${formatCurrency(calculationData.tarifaBase)}
-• Subtotal: ${formatCurrency(prices.subtotal)}
-${prices.descuento > 0 ? `• Descuento: -${formatCurrency(prices.descuento)}` : ''}
-${prices.ubicacion > 0 ? `• Recargo ubicación: +${formatCurrency(prices.ubicacion)}` : ''}
-• <b>TOTAL: ${formatCurrency(prices.total)} COP</b>
-
-📅 Cotización válida por 7 días
-            `;
-            
-            sendQuoteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            sendQuoteBtn.disabled = true;
-            
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        chat_id: TELEGRAM_CHAT_ID,
-                        text: mensaje,
-                        parse_mode: 'HTML'
-                    })
-                });
-                
-                if (response.ok) {
-                    alert('✅ ¡Cotización enviada exitosamente!\n\nTe contactaré pronto para confirmar los detalles.');
-                    location.reload();
-                } else {
-                    throw new Error('Error al enviar');
-                }
-            } catch (error) {
-                alert('❌ Error al enviar la cotización. Por favor verifica la configuración del bot de Telegram o intenta nuevamente.');
-            } finally {
-                sendQuoteBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Cotización';
-                sendQuoteBtn.disabled = false;
-            }
-        });
-    </script>
+      } catch (error) {
+        alert('❌ Error al enviar la cotización. Por favor verifica la configuración del bot de Telegram o intenta nuevamente.');
+      } finally {
+        sendQuoteBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Cotización';
+        sendQuoteBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
+
 </html>
